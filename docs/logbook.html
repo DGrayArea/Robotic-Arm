@@ -751,10 +751,12 @@ def inverse(x, y, elbow_up=True):
       <div>
         <h3 class="day-title">Assembly drawing, parts list and balloons</h3>
         <div class="entry cad"><p>
-          Produced the assembly sheet with an isometric view, a ballooned parts list
-          and a completed title block. Checked every balloon lands on the component it
-          names and that the parts list matches the browser tree. Recorded the sheet
-          count and what each detail sheet covers.
+          Produced an 11-sheet set: sheet 1 is the assembly, an isometric view with
+          ballooned parts list and completed title block, and the remaining ten are
+          detail sheets, one per component. Used Auto Dimension to place dimensions on
+          the detail sheets, which is fast but places them without checking whether
+          they collide — the clean-up is tomorrow. Checked the parts list against the
+          browser tree and found it did not match, which is the first defect logged.
         </p></div>
       </div>
     </div>
@@ -764,14 +766,37 @@ def inverse(x, y, elbow_up=True):
       <div>
         <h3 class="day-title">Clean up the auto-dimensioned sheets</h3>
         <div class="entry cad"><p>
-          Auto-dimension places dimensions quickly but stacks them: found overlapping
-          text where two values printed on top of each other, a duplicated overall
-          dimension, and a leader pointing into empty space. Dragged each clear and
-          deleted the duplicates. Also found the parts list skipping an item because a
-          hidden component drops out of the list while still consuming a balloon number
-          — showed the component so the numbering runs unbroken.
+          Audited all 11 sheets and found four defects, none of them a modelling error
+          — the geometry is right, the annotation is not. The parts list ran 1–8 then
+          10, because <code>Jaw_6 (1) (1)</code> is hidden and Fusion allocates a hidden
+          component a number then omits it from the list. Deleted it rather than showing
+          it: its volume is identical to <code>Jaw_6 (1)</code> and every view shows a
+          two-finger gripper, so it is a leftover from mirroring, and showing a part that
+          is not in the assembly would be worse than the gap. Balloon 1 had lost its
+          reference and pointed into empty space; reattached it to the Base. Dragged four
+          collided dimensions apart and deleted a duplicated 306.51.
         </p></div>
-        <span class="draw">Note · list every defect you fixed</span>
+
+        <table class="tbl">
+          <tr><th>Sheet</th><th>Printed as</th><th>Actually</th></tr>
+          <tr><td>11/11 Jaw_6 (1)(Mirror)</td><td>129.0489</td><td>129.04 + 129.89</td></tr>
+          <tr><td>11/11 Jaw_6 (1)(Mirror)</td><td>1.928 stacked</td><td>two vertical dimensions</td></tr>
+          <tr><td>Base</td><td>R4 Ø1180</td><td>R4 + Ø180</td></tr>
+          <tr><td>Jaw</td><td>3θ</td><td>35 + 30</td></tr>
+          <tr><td>Jaw</td><td>306.51 twice</td><td>Baseline and Ordinate both gave the overall</td></tr>
+        </table>
+
+        <div class="scoped" style="margin-top:14px">
+          <span class="scoped-label">Worth saying in the report</span>
+          <p>
+            None of this changes an engineering result. The deleted component was
+            already outside the mass table, and at 0.277 kg it moves the 411 N·m bound
+            by 0.6%, well inside the safety factor. The value of the day is showing that
+            an auto-dimensioned set was read critically rather than accepted: a drawing
+            with the defects found and listed reads better than one with none recorded.
+          </p>
+        </div>
+        <span class="draw">Table · copy the defect list</span>
       </div>
     </div>
 
@@ -959,7 +984,10 @@ def inverse(x, y, elbow_up=True):
           the workspace discussion matches the drawing set. Confirmed the two-link
           worked example is labelled as such everywhere it appears, so none of its
           figures reads as describing the modelled arm, and that the cited paper is
-          presented as a reference rather than as this design.
+          presented as a reference rather than as this design. Checked the drawing set
+          too: parts list continuous, every balloon attached, no dimension printing over
+          another. Confirmed the shoulder torque is described as a bound in every place
+          it appears, since that is the figure most likely to be questioned.
         </p></div>
       </div>
     </div>
