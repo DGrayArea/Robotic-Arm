@@ -80,15 +80,23 @@ class Link:
 # horizontal, because that is the pose the worst-case moment arm is defined in.
 # The two columns therefore get filled on separate passes.
 LINKS: list[Link] = [
-    # Fusion: 18907.772 g at 7.849 g/cm^3, so steel really is applied.
-    Link("Jaw (shoulder)", mass_kg=18.908),
-    Link("Jaw_2"),
-    Link("Jaw_3"),
-    Link("Jaw_4"),
-    Link("Jaw_5"),
-    Link("Jaw_6"),
-    Link("Jaw_6 (1) + Mirror (gripper)"),
+    # Masses read from Fusion, Properties -> Physical, in grams. Every one
+    # reports 7.85 g/cm^3, so steel is genuinely applied throughout rather than
+    # any part being left on a default material.
+    Link("Jaw (shoulder)",               mass_kg=18.908),   # 18907.772 g
+    Link("Jaw_2",                        mass_kg=7.904),    #  7903.653 g
+    Link("Jaw_3",                        mass_kg=11.365),   # 11365.247 g
+    Link("Jaw_4",                        mass_kg=4.842),    #  4842.335 g
+    Link("Jaw_5",                        mass_kg=2.682),    #  2681.898 g
+    Link("Jaw_6",                        mass_kg=0.600),    #   599.976 g
+    Link("Jaw_6 (1) finger",             mass_kg=0.277),    #   276.571 g
+    Link("Jaw_6 (1)(Mirror) finger",     mass_kg=0.277),    #   276.571 g
 ]
+
+# Jaw_6 (1) (1) is excluded: it is hidden in the browser and absent from the
+# parts list, which is the numbering gap flagged in the README. If it turns out
+# to belong in the assembly it is another 0.277 kg, about 0.6% of the total, so
+# it changes the drive selection not at all -- but the drawing still needs fixing.
 
 # Base is excluded on purpose: it sits below the shoulder axis, so it applies no
 # moment about it. It matters for the floor-fixing calculation, not this one.
@@ -173,6 +181,45 @@ def shoulder_torque(
     }
 
 
+def upper_bound_torque(payload_kg: float,
+                       links: list[Link] | None = None,
+                       safety_factor: float = SAFETY_FACTOR) -> dict:
+    """
+    Strict upper bound on shoulder torque, from masses alone.
+
+    Pretend every gram sits at full reach:
+
+        T_max = ( sum(m_i) + payload ) * g * REACH_EXTENDED
+
+    No centre of mass is needed, and no pose, because putting every mass at the
+    furthest point it could possibly occupy can only overstate the moment. The
+    true figure is strictly smaller, since the heavy links sit close to the
+    shoulder and only the light gripper is out at the end.
+
+    That makes this usable now and safe to size a drive against: a motor that
+    meets the bound meets the real requirement. It is not a substitute for the
+    exact number, because sizing against a bound that is 2-3x too high buys a
+    drive far heavier and more expensive than the arm needs.
+    """
+    links = links if links is not None else LINKS
+    missing = [l.name for l in links if l.mass_kg is None]
+    if missing:
+        raise UnfilledMassTable(
+            "Masses missing for: " + ", ".join(missing))
+
+    arm_kg = sum(l.mass_kg for l in links)
+    total_kg = arm_kg + payload_kg
+    bound = total_kg * G * (REACH_EXTENDED_MM / 1000.0)
+    return {
+        "arm_kg": arm_kg,
+        "payload_kg": payload_kg,
+        "total_kg": total_kg,
+        "bound_nm": bound,
+        "design_nm": bound * safety_factor,
+        "safety_factor": safety_factor,
+    }
+
+
 def gear_ratio_for(design_nm: float, motor_nm: float) -> float:
     """
     Ratio needed to get `design_nm` out of a motor rated `motor_nm`.
@@ -218,7 +265,28 @@ def main() -> None:
                         help="run with visibly fake masses to see the output shape")
     parser.add_argument("--payload", type=float, default=2.0,
                         help="payload mass in kg (default 2.0)")
+    parser.add_argument("--bound", action="store_true",
+                        help="upper bound from masses alone, no pose needed")
     args = parser.parse_args()
+
+    if args.bound:
+        r = upper_bound_torque(args.payload)
+        print(f"\n  Upper bound on shoulder torque, from masses alone.")
+        print(f"  Assumes every gram sits at full reach, so the true figure is")
+        print(f"  strictly lower. No pose or centre of mass needed.\n")
+        print(f"    arm above the shoulder   {r['arm_kg']:>9.3f} kg")
+        print(f"    payload                  {r['payload_kg']:>9.3f} kg")
+        print(f"    total                    {r['total_kg']:>9.3f} kg")
+        print(f"    lever (full reach)       {REACH_EXTENDED_MM/1000:>9.4f} m")
+        print(f"    ---------------------------------------")
+        print(f"    bound                    {r['bound_nm']:>9.1f} N.m")
+        print(f"    x SF {r['safety_factor']}                  "
+              f"{r['design_nm']:>9.1f} N.m\n")
+        print("  Gear ratio to meet the BOUND (an overestimate):")
+        for motor_nm in (1.0, 3.0, 10.0, 30.0):
+            print(f"    {motor_nm:>5.1f} N.m motor  ->  "
+                  f"{gear_ratio_for(r['design_nm'], motor_nm):>7.1f}:1")
+        return
 
     if args.demo:
         global SHOULDER_X_MM
