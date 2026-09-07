@@ -6,3 +6,9 @@
 # Saved-webpage sidecar for the logbook HTML: hundreds of small chunks that
 # regenerate on re-save and say nothing about the design.
 Pick-and-Place Arm Logbook_files/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/

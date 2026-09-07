@@ -115,4 +115,18 @@ robotic arm.f3d                     Fusion archive, the source of truth
 dofijte.pdf                         reference paper (Jadhav et al.) — citation only
 Assets/                             11 screenshots of the model and drawings
 docs/logbook.html                   week 14-18 logbook, scoped to this arm
+sim/                                analysis scripts — see sim/README.md
+tests/                              32 tests for the kinematics
+outputs/figures/                    generated plots
 ```
+
+## Running the analysis
+
+```bash
+python -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/python -m sim.workspace
+.venv/bin/python -m pytest tests/
+```
+
+`sim/torque.py` deliberately refuses to produce a number until the mass table
+above is filled from Fusion. See `sim/README.md` for why.

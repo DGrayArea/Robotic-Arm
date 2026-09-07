@@ -1,0 +1,7 @@
+# Analysis and plotting for sim/. Nothing here talks to Fusion: the CAD is
+# opened by hand and its mass properties typed into sim/torque.py.
+numpy>=1.26
+matplotlib>=3.8
+
+# Tests
+pytest>=8.0
