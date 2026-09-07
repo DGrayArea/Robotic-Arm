@@ -49,32 +49,31 @@ revolute, so with base rotation this is a **six-axis arm**, not three.
 
 ---
 
-## Three sets of numbers that do not agree
+## Two machines, kept separate on purpose
 
-Worth resolving before any of this goes in a report, because a marker who
-follows a figure from one document to another will land on a contradiction.
+Three different arms appear in this folder. Mixing their figures is the easiest
+way to produce a report that contradicts itself, so the scoping is fixed:
 
-**1. The reference paper** (`dofijte.pdf`) is Jadhav et al., *3-DOF Pick and
-Place Robotic Arm*, ISTE Vol 47, Aug 2024. It is **someone else's published
-work**, useful as a citation, not as a description of this model. Its arm is:
+**The arm** — this CAD model — is the mechanical design. Six revolute axes,
+857.5 mm reach, ~830 mm tall, steel. Every dimension, mass and motor figure in
+the report describes it.
 
-- 3 revolute joints, DH parameters 0.390 m offset, 0.240 m and 0.235 m links
-- ~475 mm reach
-- NEMA-class steppers, 20 kg·cm and 4.6 N·m holding torque, Arduino UNO
+**The worked example** is a two-link planar arm, L1 = 250 mm and L2 = 150 mm,
+used in week 15 of the logbook and in `sim/` only. Six-axis inverse kinematics
+is not a week's hand derivation, so the method is developed on a case small
+enough to solve on paper and check in code, then applied to the real arm's DH
+table. Its 400 mm reach and 0.5 kg payload describe nothing physical, and it is
+fenced wherever it appears.
 
-**2. The logbook plan** (`Pick-and-Place Arm Logbook.html`) assumes:
+**The reference paper** (`dofijte.pdf`) is Jadhav et al., *3-DOF Pick and Place
+Robotic Arm*, ISTE Vol 47, Aug 2024 — a 3-DOF arm with 240/235 mm links and
+~475 mm reach. It is **someone else's published work**. Cite it for method; take
+no numbers from it.
 
-- 2 links, L1 = 250 mm, L2 = 150 mm, 400 mm reach
-- 0.5 kg payload, aluminium flat plates, ~5.0 N·m shoulder torque
-- NEMA 17 with a 20:1 gearbox
-
-**3. This CAD model** is neither: roughly 830 mm tall with 857 mm of reach, six
-axes, and steel throughout. Steel at that scale is far heavier than the
-logbook's aluminium plates, so every torque and motor figure in the logbook is
-wrong for this machine — almost certainly by an order of magnitude.
-
-Pick one machine and make the other two documents follow it. The CAD is the
-most defensible choice, since it is the thing that actually exists.
+The trap to avoid: the logbook originally sized a NEMA 17 with a 20:1 gearbox at
+about 5.0 N·m. That belongs to the 400 mm aluminium example. A steel arm at
+857 mm needs far more, and the real figure only comes out once the mass table
+below is filled from Fusion.
 
 ---
 
@@ -115,5 +114,5 @@ the real model rather than on an assumed one.
 robotic arm.f3d                     Fusion archive, the source of truth
 dofijte.pdf                         reference paper (Jadhav et al.) — citation only
 Assets/                             11 screenshots of the model and drawings
-Pick-and-Place Arm Logbook.html     week 14-18 logbook plan (numbers need reconciling)
+docs/logbook.html                   week 14-18 logbook, scoped to this arm
 ```

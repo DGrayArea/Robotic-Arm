@@ -1,0 +1,1034 @@
+<title>Robotic Arm Logbook</title>
+<style>
+  :root {
+    --paper:   #EDF0F1;
+    --card:    #FFFFFF;
+    --ink:     #171D21;
+    --ink-2:   #58656B;
+    --rule:    #CBD4D8;
+    --rule-2:  #DEE5E8;
+    --accent:  #0E6E88;
+    --accent-soft: rgba(14,110,136,.08);
+    --mark:    #B4531C;
+    --mark-soft: rgba(180,83,28,.10);
+    --cad:     #4A7C59;
+    --cad-soft: rgba(74,124,89,.11);
+    --grid:    rgba(23,29,33,.07);
+    --code-bg: #F3F6F7;
+    --f-sans: ui-sans-serif, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --f-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#12171A; --card:#1A2126; --ink:#E2E9EC; --ink-2:#8D9BA2;
+      --rule:#2C3740; --rule-2:#242D34; --accent:#55B9D8;
+      --accent-soft:rgba(85,185,216,.12); --mark:#E08A54;
+      --mark-soft:rgba(224,138,84,.14); --cad:#7FBF8F;
+      --cad-soft:rgba(127,191,143,.14); --grid:rgba(226,233,236,.07);
+      --code-bg:#141A1E;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#12171A; --card:#1A2126; --ink:#E2E9EC; --ink-2:#8D9BA2;
+    --rule:#2C3740; --rule-2:#242D34; --accent:#55B9D8;
+    --accent-soft:rgba(85,185,216,.12); --mark:#E08A54;
+    --mark-soft:rgba(224,138,84,.14); --cad:#7FBF8F;
+    --cad-soft:rgba(127,191,143,.14); --grid:rgba(226,233,236,.07);
+    --code-bg:#141A1E;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--f-sans); font-size:16px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:1000px; margin:0 auto; padding:40px 24px 80px; }
+
+  .masthead { border-bottom:2px solid var(--ink); padding-bottom:22px; margin-bottom:34px; }
+  .eyebrow {
+    font-family:var(--f-mono); font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--accent); margin:0 0 10px;
+  }
+  h1 {
+    font-size:clamp(28px,4.6vw,42px); line-height:1.12; margin:0 0 14px;
+    letter-spacing:-.02em; text-wrap:balance; font-weight:640;
+  }
+  .standfirst { font-size:17px; color:var(--ink-2); margin:0; max-width:62ch; }
+
+  .specs {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:1px; background:var(--rule); border:1px solid var(--rule); margin-top:26px;
+  }
+  .spec { background:var(--card); padding:12px 14px; }
+  .spec dt {
+    font-family:var(--f-mono); font-size:10px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-2); margin:0 0 4px;
+  }
+  .spec dd {
+    margin:0; font-family:var(--f-mono); font-size:15px;
+    font-variant-numeric:tabular-nums; font-weight:600;
+  }
+
+  .howto {
+    margin-top:26px; padding:16px 18px; background:var(--accent-soft);
+    border-left:3px solid var(--accent); font-size:15px;
+  }
+  .howto p { margin:0 0 8px; }
+  .howto p:last-child { margin-bottom:0; }
+  .legend { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+
+  .tool {
+    display:inline-block; font-family:var(--f-mono); font-size:10px;
+    letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+    padding:3px 7px; white-space:nowrap;
+  }
+  .t-paper  { color:var(--ink-2); background:var(--rule-2); }
+  .t-python { color:var(--accent); background:var(--accent-soft); }
+  .t-fusion { color:var(--cad); background:var(--cad-soft); }
+
+  /* Worked-example content is fenced so no reader can mistake its numbers for
+     the real machine's. Dashed rule rather than another accent hue. */
+  .scoped {
+    border:1px dashed var(--ink-2); background:transparent;
+    padding:14px 16px; margin:22px 0;
+  }
+  .scoped-label {
+    font-family:var(--f-mono); font-size:10px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-2); font-weight:700;
+    display:block; margin-bottom:8px;
+  }
+  .scoped p { margin:0; font-size:14.5px; color:var(--ink-2); }
+
+  .week { margin-top:52px; }
+  .week-head {
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+    border-bottom:1px solid var(--ink); padding-bottom:10px; margin-bottom:4px;
+  }
+  .week-no {
+    font-family:var(--f-mono); font-size:12px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--card); background:var(--ink);
+    padding:4px 9px; font-weight:600;
+  }
+  .week-head h2 { font-size:22px; margin:0; font-weight:640; letter-spacing:-.01em; }
+  .week-aim { font-size:14px; color:var(--ink-2); margin:10px 0 0; max-width:68ch; }
+
+  .day {
+    display:grid; grid-template-columns:92px 1fr; gap:20px;
+    padding:22px 0; border-bottom:1px solid var(--rule-2);
+  }
+  .day:last-of-type { border-bottom:0; }
+  .day-rail { padding-top:2px; display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+  .day-code { font-family:var(--f-mono); font-size:12px; font-weight:700; letter-spacing:.1em; color:var(--ink); }
+  .day-n { font-family:var(--f-mono); font-size:11px; color:var(--ink-2); font-variant-numeric:tabular-nums; }
+  .day-title { font-size:16px; font-weight:650; margin:0 0 10px; letter-spacing:-.005em; }
+
+  .entry {
+    background:var(--card); border:1px solid var(--rule);
+    border-left:3px solid var(--accent); padding:14px 16px;
+    font-size:15px; line-height:1.62;
+  }
+  .entry p { margin:0; }
+  .entry.cad { border-left-color:var(--cad); }
+  .entry.ex  { border-left-style:dashed; border-left-color:var(--ink-2); }
+
+  .draw {
+    display:inline-flex; align-items:center; gap:6px; margin-top:10px;
+    font-family:var(--f-mono); font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--mark); background:var(--mark-soft);
+    padding:4px 9px; font-weight:600;
+  }
+  pre.code {
+    margin:10px 0 0; padding:12px 14px; background:var(--code-bg);
+    border:1px solid var(--rule-2); font-family:var(--f-mono);
+    font-size:12.5px; line-height:1.55; overflow-x:auto; color:var(--ink);
+  }
+  pre.code .c { color:var(--ink-2); }
+
+  figure { margin:24px 0 4px; border:1px solid var(--rule); background:var(--card); overflow:hidden; }
+  .fig-head {
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    padding:9px 14px; border-bottom:1px solid var(--rule-2);
+    font-family:var(--f-mono); font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-2); flex-wrap:wrap;
+  }
+  .fig-head b { color:var(--mark); font-weight:700; }
+  .fig-body { padding:18px 14px; overflow-x:auto; }
+  .fig-body svg { display:block; margin:0 auto; max-width:100%; height:auto; }
+  figcaption { padding:0 14px 14px; font-size:13.5px; color:var(--ink-2); max-width:72ch; }
+
+  svg .ln  { stroke:var(--ink); fill:none; stroke-width:1.6; }
+  svg .ln2 { stroke:var(--ink-2); fill:none; stroke-width:1.2; }
+  svg .acc { stroke:var(--accent); fill:none; stroke-width:2; }
+  svg .mk  { stroke:var(--mark); fill:none; stroke-width:1.6; }
+  svg .cd  { stroke:var(--cad); fill:none; stroke-width:1.8; }
+  svg .dash { stroke-dasharray:4 3; }
+  svg .fill-acc { fill:var(--accent); stroke:none; }
+  svg .fill-ink { fill:var(--ink); stroke:none; }
+  svg .fill-cad { fill:var(--cad); stroke:none; }
+  svg text { font-family:var(--f-mono); font-size:11px; fill:var(--ink); }
+  svg text.dim { fill:var(--ink-2); font-size:10px; }
+  svg text.mkt { fill:var(--mark); }
+  svg text.acct { fill:var(--accent); }
+  svg text.cadt { fill:var(--cad); }
+  svg .grid-ln { stroke:var(--grid); stroke-width:1; }
+
+  .formula {
+    font-family:var(--f-mono); font-size:13.5px; background:var(--accent-soft);
+    padding:10px 12px; margin:10px 0 0; overflow-x:auto; white-space:nowrap; color:var(--ink);
+  }
+  table.tbl { width:100%; border-collapse:collapse; font-size:14px; margin-top:14px; }
+  table.tbl th, table.tbl td { border:1px solid var(--rule); padding:7px 10px; text-align:left; }
+  table.tbl th {
+    background:var(--card); font-family:var(--f-mono); font-size:10px;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2);
+  }
+  table.tbl td { font-variant-numeric:tabular-nums; }
+  .note { margin-top:40px; padding:18px 20px; border:1px dashed var(--rule); font-size:14.5px; color:var(--ink-2); }
+  .note h3 { margin:0 0 8px; font-size:15px; color:var(--ink); font-weight:650; }
+  .note ul { margin:8px 0 0; padding-left:20px; }
+  .note li { margin-bottom:6px; }
+
+  @media (max-width:620px) {
+    .day { grid-template-columns:1fr; gap:8px; }
+    .day-rail { flex-direction:row; gap:10px; align-items:baseline; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Mechatronics design project · weeks 14–18</p>
+    <h1>Six-axis pick-and-place arm: CAD, analysis and control</h1>
+    <p class="standfirst">
+      A logbook for the arm modelled in Fusion: six revolute axes, 857.5 mm reach,
+      steel throughout. Design and analysis only, no build. Five weeks, Monday to
+      Friday, with a short entry to copy each day.
+    </p>
+
+    <dl class="specs">
+      <div class="spec"><dt>Axes</dt><dd>6 revolute</dd></div>
+      <div class="spec"><dt>Reach, extended</dt><dd>857.5 mm</dd></div>
+      <div class="spec"><dt>Reach, retracted</dt><dd>656.3 mm</dd></div>
+      <div class="spec"><dt>Overall height</dt><dd>826.7 mm</dd></div>
+      <div class="spec"><dt>Base diameter</dt><dd>Ø220 mm</dd></div>
+      <div class="spec"><dt>Material</dt><dd>Steel</dd></div>
+    </dl>
+
+    <div class="howto">
+      <p><strong>How to use this.</strong> Each day has a title and a short entry
+      to copy into your logbook in your own words. Every number here comes off the
+      drawing set, so change one and the rest have to move with it.</p>
+      <p>Days are tagged with the tool they need. Nine carry a
+      <span style="color:var(--mark);font-family:var(--f-mono);font-size:12px">SKETCH</span>
+      marker: those are the figures to draw by hand, and they are all drawn below.</p>
+      <p class="legend">
+        <span class="tool t-paper">Paper</span>
+        <span class="tool t-python">Python</span>
+        <span class="tool t-fusion">Fusion</span>
+      </p>
+    </div>
+  </header>
+
+  <div class="scoped">
+    <span class="scoped-label">Two machines in this project — do not mix their numbers</span>
+    <p>
+      <strong>The arm</strong> is the six-axis steel model in <code>robotic arm.f3d</code>.
+      It is the mechanical design, and every dimension, mass and motor figure in the
+      report describes it.
+    </p>
+    <p style="margin-top:10px">
+      <strong>The worked example</strong> is a two-link planar arm, L1 = 250 mm and
+      L2 = 150 mm, used in week 15 only. Full six-axis kinematics cannot be derived
+      by hand in a week, so the maths is developed on a case small enough to solve
+      on paper and check in code, then the method is applied to the real arm's DH
+      table. Its 400 mm reach and 0.5 kg payload describe nothing physical.
+    </p>
+    <p style="margin-top:10px">
+      Anything belonging to the worked example is fenced in a dashed box like this
+      one. A figure from one must never be presented as describing the other. The
+      reference paper in the folder, Jadhav et al., is a third and different arm
+      again — cite it, do not take numbers from it.
+    </p>
+  </div>
+
+  <figure>
+    <div class="fig-head"><span>The loop the project is built around</span><b>draw this</b></div>
+    <div class="fig-body">
+      <svg viewBox="0 0 660 210" role="img" aria-label="Design loop from CAD geometry to mass properties to torque to motor selection, with a simulation feedback path">
+        <rect x="18"  y="26" width="118" height="50" class="cd"/>
+        <text x="34"  y="48" class="cadt">FUSION</text><text x="34" y="64" class="cadt">GEOMETRY</text>
+        <rect x="182" y="26" width="118" height="50" class="cd"/>
+        <text x="196" y="48" class="cadt">MASS &amp;</text><text x="196" y="64" class="cadt">INERTIA</text>
+        <rect x="346" y="26" width="118" height="50" class="ln"/>
+        <text x="366" y="55">TORQUE</text>
+        <rect x="510" y="26" width="132" height="50" class="ln"/>
+        <text x="524" y="48">MOTOR +</text><text x="524" y="64">GEARBOX</text>
+        <rect x="346" y="134" width="118" height="50" class="acc"/>
+        <text x="360" y="156" class="acct">PYTHON</text><text x="360" y="172" class="acct">SIM</text>
+        <g class="ln">
+          <line x1="136" y1="51" x2="172" y2="51"/><polygon points="172,47 182,51 172,55" class="fill-ink"/>
+          <line x1="300" y1="51" x2="336" y2="51"/><polygon points="336,47 346,51 336,55" class="fill-ink"/>
+          <line x1="464" y1="51" x2="500" y2="51"/><polygon points="500,47 510,51 500,55" class="fill-ink"/>
+        </g>
+        <path d="M 576 76 L 576 159 L 474 159" class="mk"/>
+        <polygon points="474,155 464,159 474,163" class="mk" fill="none"/>
+        <path d="M 405 134 L 405 86" class="mk"/>
+        <polygon points="401,86 405,76 409,86" class="mk" fill="none"/>
+        <text x="486" y="196" class="mkt">cycle time fails → resize</text>
+      </svg>
+    </div>
+    <figcaption>
+      This is what turns a CAD exercise into an engineering project. Fusion supplies
+      real masses instead of guesses, the torque calculation picks the motor, and the
+      simulation checks whether that motor still meets the cycle time. If it does
+      not, you go round again — and saying so in the report is worth marks.
+    </figcaption>
+  </figure>
+
+  <!-- ================= WEEK 14 ================= -->
+  <section class="week">
+    <div class="week-head">
+      <span class="week-no">Week 14</span>
+      <h2>Specification and concept</h2>
+    </div>
+    <p class="week-aim">
+      Write down what the machine has to do and why it is shaped the way it is. All
+      paper. The model already exists, so this week is about being able to justify
+      it rather than having chosen it by accident.
+    </p>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">MON</span><span class="day-n">14.1</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Write the specification</h3>
+        <div class="entry"><p>
+          Defined the task: lift a part from a conveyor and sort it into one of three
+          bins. Set the specification from the model as built — 857.5 mm reach at full
+          extension, 826.7 mm overall height, a Ø220 mm bolted base footprint, and six
+          revolute axes. Listed the constraints: bolted to a floor plate, mains power,
+          and an electric gripper since no compressed air is available.
+        </p></div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">TUE</span><span class="day-n">14.2</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Why six axes, and why articulated</h3>
+        <div class="entry"><p>
+          Compared cartesian, SCARA, articulated and delta layouts against reach,
+          footprint, speed and stiffness. An articulated arm gives the largest reach
+          for the smallest floor area, which is what a Ø220 mm base demands. Recorded
+          the cost of that choice honestly: every joint adds a gearbox, a source of
+          backlash, and another mass hanging off the ones below it.
+        </p></div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">WED</span><span class="day-n">14.3</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Weighted decision matrix</h3>
+        <div class="entry"><p>
+          Scored the four layouts 1–5 against five weighted criteria — reach-to-footprint
+          30%, cycle time 25%, cost 20%, complexity 15%, stiffness 10%. The articulated
+          arm scored highest, with SCARA second and losing on vertical travel. Noted
+          that six axes is more than a pure pick-and-place needs: three would position
+          the gripper, and the extra three set its orientation.
+        </p></div>
+        <span class="draw">Sketch 1 · draw the matrix</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">THU</span><span class="day-n">14.4</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Cell layout and coordinate frames</h3>
+        <div class="entry"><p>
+          Laid out the cell in plan view with the conveyor in front of the arm and three
+          bins to the side, all inside the 857.5 mm envelope. Put the world origin on the
+          base rotation axis so every later coordinate has one datum. Marked the annular
+          dead zone close to the column, where the arm cannot fold tightly enough to
+          reach.
+        </p></div>
+        <span class="draw">Sketch 2 · draw the cell plan</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">FRI</span><span class="day-n">14.5</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">System block diagram and week review</h3>
+        <div class="entry"><p>
+          Drew the block diagram: part sensor and six encoders into the controller,
+          controller out to six drives and the gripper, encoder feedback closing each
+          loop. Marked the boundary between the signal side and the power side. Risk
+          logged for the week: a steel arm of this size will need far more joint torque
+          than a hobby-scale servo can supply, and I will not know how much until the
+          mass properties come out of Fusion in week 16.
+        </p></div>
+        <span class="draw">Sketch 3 · draw the block diagram</span>
+      </div>
+    </div>
+
+    <figure>
+      <div class="fig-head"><span>Sketch 2 — cell layout, plan view</span><b>draw this</b></div>
+      <div class="fig-body">
+        <svg viewBox="0 0 640 300" role="img" aria-label="Plan view of the cell showing conveyor, arm base, reach envelope and three bins">
+          <rect x="40" y="200" width="330" height="52" class="ln2"/>
+          <line x1="40" y1="226" x2="370" y2="226" class="ln2 dash"/>
+          <text x="46" y="270" class="dim">CONVEYOR</text>
+          <polygon points="360,220 375,226 360,232" class="fill-ink"/>
+          <circle cx="205" cy="120" r="17" class="acc"/>
+          <circle cx="205" cy="120" r="3.5" class="fill-acc"/>
+          <text x="228" y="118" class="acct">ARM BASE</text>
+          <text x="228" y="132" class="dim">Ø220, origin (0,0)</text>
+          <path d="M 205 120 m -160 0 a 160 160 0 1 1 320 0" class="mk dash"/>
+          <text x="44" y="112" class="mkt">R = 857.5 max</text>
+          <circle cx="205" cy="120" r="42" class="mk"/>
+          <text x="150" y="176" class="mkt">dead zone</text>
+          <line x1="205" y1="120" x2="205" y2="200" class="ln2 dash"/>
+          <circle cx="205" cy="200" r="5" class="fill-acc"/>
+          <text x="216" y="196" class="dim">PICK</text>
+          <rect x="400" y="70"  width="58" height="46" class="ln"/>
+          <rect x="400" y="126" width="58" height="46" class="ln"/>
+          <rect x="400" y="182" width="58" height="46" class="ln"/>
+          <text x="468" y="98"  class="dim">BIN 1</text>
+          <text x="468" y="154" class="dim">BIN 2</text>
+          <text x="468" y="210" class="dim">BIN 3</text>
+          <line x1="205" y1="120" x2="270" y2="120" class="acc"/>
+          <polygon points="270,116 280,120 270,124" class="fill-acc"/>
+          <text x="284" y="124" class="acct">+x</text>
+          <line x1="205" y1="120" x2="205" y2="62" class="acc"/>
+          <polygon points="201,62 205,52 209,62" class="fill-acc"/>
+          <text x="192" y="46" class="acct">+y</text>
+        </svg>
+      </div>
+      <figcaption>
+        One datum for everything. The inner circle is the part of the bench the arm
+        cannot serve however it folds, which is what constrains where the conveyor
+        can sit.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <div class="fig-head"><span>Sketch 3 — system block diagram</span><b>draw this</b></div>
+      <div class="fig-body">
+        <svg viewBox="0 0 660 220" role="img" aria-label="Block diagram from sensor through controller and drives to the arm with encoder feedback">
+          <rect x="14"  y="70" width="96" height="52" class="ln"/>
+          <text x="30"  y="92">PART</text><text x="30" y="108">SENSOR</text>
+          <rect x="152" y="70" width="104" height="52" class="acc"/>
+          <text x="170" y="92" class="acct">CONTROL-</text><text x="170" y="108" class="acct">LER</text>
+          <rect x="298" y="70" width="96" height="52" class="ln"/>
+          <text x="318" y="92">6 x</text><text x="312" y="108">DRIVES</text>
+          <rect x="436" y="70" width="96" height="52" class="ln"/>
+          <text x="446" y="92">6 x MOTOR</text><text x="446" y="108">+ GEARBOX</text>
+          <rect x="562" y="70" width="82" height="52" class="ln"/>
+          <text x="580" y="99">ARM</text>
+          <g class="ln">
+            <line x1="110" y1="96" x2="146" y2="96"/><polygon points="146,92 156,96 146,100" class="fill-ink"/>
+            <line x1="256" y1="96" x2="292" y2="96"/><polygon points="292,92 302,96 292,100" class="fill-ink"/>
+            <line x1="394" y1="96" x2="430" y2="96"/><polygon points="430,92 440,96 430,100" class="fill-ink"/>
+            <line x1="532" y1="96" x2="558" y2="96"/><polygon points="558,92 568,96 558,100" class="fill-ink"/>
+          </g>
+          <path d="M 603 122 L 603 178 L 204 178 L 204 126" class="mk"/>
+          <polygon points="200,126 204,116 208,126" class="mk" fill="none"/>
+          <text x="340" y="196" class="mkt">6 x ENCODER FEEDBACK</text>
+          <line x1="276" y1="26" x2="276" y2="164" class="ln2 dash"/>
+          <text x="286" y="38" class="dim">power side →</text>
+          <text x="176" y="38" class="dim">← signal</text>
+        </svg>
+      </div>
+      <figcaption>
+        The dashed line is the signal/power boundary — worth marking, because it is
+        where grounding and noise problems live.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= WEEK 15 ================= -->
+  <section class="week">
+    <div class="week-head">
+      <span class="week-no">Week 15</span>
+      <h2>Kinematics</h2>
+    </div>
+    <p class="week-aim">
+      Derive the equations by hand on a case small enough to solve on paper, check
+      them in code, then apply the method to the real arm's DH table. Deriving before
+      typing matters: if you only ever key in a formula you cannot defend it.
+    </p>
+
+    <div class="scoped">
+      <span class="scoped-label">Worked example — not the real arm</span>
+      <p>
+        Monday to Thursday use a two-link planar arm, L1 = 250 mm and L2 = 150 mm.
+        Six-axis inverse kinematics is not a week's hand derivation, and a two-link
+        case carries every idea that matters: forward and inverse mappings, two
+        solution branches, a bounded workspace, and singularities. Friday returns to
+        the six-axis arm. None of Monday–Thursday's numbers describe the machine in
+        the CAD.
+      </p>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">MON</span><span class="day-n">15.1</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Set up the worked example</h3>
+        <div class="entry ex"><p>
+          Set up a two-link planar arm as a worked example, L1 = 250 mm and L2 = 150 mm,
+          because the six-axis inverse problem is not tractable by hand in the time
+          available. Maximum reach is L1 + L2 = 400 mm and minimum is |L1 − L2| = 100 mm,
+          so the workspace is an annulus. Noted clearly in the report that these figures
+          belong to the example and not to the modelled arm.
+        </p></div>
+        <span class="draw">Sketch 4 · draw the linkage</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">TUE</span><span class="day-n">15.2</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Forward and inverse kinematics by hand</h3>
+        <div class="entry ex"><p>
+          Derived the forward map from the link geometry, then inverted it with the
+          cosine rule, taking θ2 first and θ1 second. The ± on the arccos gives two
+          valid solutions for the same point, elbow-up and elbow-down. Chose elbow-up
+          as standard so the forearm stays clear of the conveyor guard.
+        </p></div>
+        <p class="formula">x = L1·cos θ1 + L2·cos(θ1 + θ2)&nbsp;&nbsp;&nbsp;cos θ2 = (x² + y² − L1² − L2²) / (2·L1·L2)</p>
+        <span class="draw">Sketch 5 · elbow-up vs elbow-down</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">WED</span><span class="day-n">15.3</span><span class="tool t-python">Python</span></div>
+      <div>
+        <h3 class="day-title">Code it and round-trip test it</h3>
+        <div class="entry ex"><p>
+          Wrote <code>arm.py</code>, about twenty lines, with a forward and an inverse
+          function. Tested by round-tripping: take joint angles, compute a position,
+          feed that position back in, and check the original angles come out. Caught a
+          sign error in θ1 immediately that Tuesday's hand derivation had hidden.
+        </p></div>
+        <pre class="code"><span class="c"># arm.py — worked example, two-link planar</span>
+import numpy as np
+L1, L2 = 250.0, 150.0
+
+def forward(t1, t2):
+    return (L1*np.cos(t1) + L2*np.cos(t1+t2),
+            L1*np.sin(t1) + L2*np.sin(t1+t2))
+
+def inverse(x, y, elbow_up=True):
+    c2 = (x*x + y*y - L1**2 - L2**2) / (2*L1*L2)
+    t2 = np.arccos(np.clip(c2, -1, 1))
+    if not elbow_up: t2 = -t2
+    t1 = np.arctan2(y, x) - np.arctan2(L2*np.sin(t2), L1 + L2*np.cos(t2))
+    return t1, t2</pre>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">THU</span><span class="day-n">15.4</span><span class="tool t-python">Python</span></div>
+      <div>
+        <h3 class="day-title">Plot the workspace</h3>
+        <div class="entry ex"><p>
+          Swept both joints across their range and scattered every reachable point,
+          which produced the annulus between 100 mm and 400 mm without my assuming it.
+          The shape falls out of the equations rather than being drawn from the answer,
+          which is the point of doing it in code.
+        </p></div>
+        <span class="draw">Sketch 6 · copy the workspace plot</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">FRI</span><span class="day-n">15.5</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Apply the method to the real arm</h3>
+        <div class="entry"><p>
+          Built the DH table for the six-axis arm by reading link lengths and offsets
+          off the drawing set, and noted that the same annulus argument gives its
+          857.5 mm outer and much larger inner bound. Identified the singularity at
+          full extension, where the links line up, the Jacobian determinant goes to
+          zero and a small tool movement demands a very large joint speed. Added a
+          software limit to keep the arm off that boundary.
+        </p></div>
+        <span class="draw">Sketch 7 · draw the DH frames</span>
+      </div>
+    </div>
+
+    <figure>
+      <div class="fig-head"><span>Sketch 4 — linkage geometry (worked example)</span><b>draw this</b></div>
+      <div class="fig-body">
+        <svg viewBox="0 0 560 250" role="img" aria-label="Two-link arm showing L1, L2, theta 1 and theta 2">
+          <line x1="60" y1="200" x2="480" y2="200" class="ln2"/>
+          <path d="M 52 208 L 68 208 M 46 214 L 62 214 M 58 202 L 74 202" class="ln2"/>
+          <line x1="70" y1="200" x2="250" y2="86" class="acc"/>
+          <line x1="250" y1="86" x2="400" y2="120" class="acc"/>
+          <circle cx="70"  cy="200" r="7" class="ln"/>
+          <circle cx="250" cy="86"  r="7" class="ln"/>
+          <circle cx="400" cy="120" r="6" class="fill-acc"/>
+          <text x="132" y="130" class="acct">L1 = 250</text>
+          <text x="312" y="88"  class="acct">L2 = 150</text>
+          <text x="404" y="146">TOOL (x, y)</text>
+          <text x="24"  y="222" class="dim">BASE</text>
+          <text x="238" y="70"  class="dim">ELBOW</text>
+          <path d="M 118 200 A 48 48 0 0 0 100 168" class="mk"/>
+          <text x="120" y="184" class="mkt">θ1</text>
+          <line x1="250" y1="86" x2="330" y2="35" class="ln2 dash"/>
+          <path d="M 296 56 A 55 55 0 0 0 305 98" class="mk"/>
+          <text x="306" y="66" class="mkt">θ2</text>
+        </svg>
+      </div>
+      <figcaption>
+        θ2 is measured from the extension of link 1, not from horizontal. Getting that
+        convention wrong is the commonest source of sign errors, and it is exactly the
+        bug Wednesday's round-trip test catches.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= WEEK 16 ================= -->
+  <section class="week">
+    <div class="week-head">
+      <span class="week-no">Week 16</span>
+      <h2>CAD, mass properties and motor sizing</h2>
+    </div>
+    <p class="week-aim">
+      The week the CAD earns its keep. Fusion holds the only honest source of mass and
+      centre of mass for a steel arm this size, and Thursday's torque figure is only as
+      good as those numbers.
+    </p>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">MON</span><span class="day-n">16.1</span><span class="tool t-fusion">Fusion</span></div>
+      <div>
+        <h3 class="day-title">Review the assembly and its joints</h3>
+        <div class="entry cad"><p>
+          Reviewed the assembly: ten component instances, six revolute joints, steel
+          throughout. Checked each joint drives through its intended range and recorded
+          the saved pose angles of −89°, 1°, −58°, −43° and 58°. Confirmed the joint
+          tree runs base to gripper in order, so driving one joint carries everything
+          above it rather than leaving a link behind.
+        </p></div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">TUE</span><span class="day-n">16.2</span><span class="tool t-fusion">Fusion</span></div>
+      <div>
+        <h3 class="day-title">Read the mass properties</h3>
+        <div class="entry cad"><p>
+          Took mass, centre of mass and moment of inertia for every component from
+          Properties → Physical with steel applied, and tabulated them. This is the
+          number the whole sizing calculation rests on: a steel arm at this scale is
+          heavy, and estimating it would put the joint torques out by a large factor.
+          Also recorded the total assembly mass for the base-fixing calculation.
+        </p></div>
+        <table class="tbl">
+          <tr><th>Component</th><th>Mass (kg)</th><th>CoM from joint (mm)</th></tr>
+          <tr><td>Base</td><td>—</td><td>—</td></tr>
+          <tr><td>Jaw (shoulder)</td><td>—</td><td>—</td></tr>
+          <tr><td>Jaw_2 … Jaw_5</td><td>—</td><td>—</td></tr>
+          <tr><td>Jaw_6 + gripper</td><td>—</td><td>—</td></tr>
+        </table>
+        <span class="draw">Table · fill this from Fusion</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">WED</span><span class="day-n">16.3</span><span class="tool t-fusion">Fusion</span></div>
+      <div>
+        <h3 class="day-title">Interference and range-of-motion check</h3>
+        <div class="entry cad"><p>
+          Drove each joint through its full range watching for collisions between the
+          links and the base column, and recorded the angle at which each one fouls.
+          These become the software limits in week 17 — they are tighter than the
+          purely kinematic limits, and the CAD finds them where the maths never would.
+        </p></div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">THU</span><span class="day-n">16.4</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Free body diagram and joint torque</h3>
+        <div class="entry"><p>
+          Drew the free body diagram for the worst case, the arm fully extended
+          horizontally at 857.5 mm with the payload gripped, and took moments about the
+          shoulder. Every link above the joint contributes its own weight at its own
+          centre of mass, so the sum runs outward from the joint to the tool. Applied a
+          safety factor of 2 for friction and assembly tolerance.
+        </p></div>
+        <p class="formula">T_shoulder = Σ ( m_i · g · r_i )  ×  SF</p>
+        <span class="draw">Sketch 8 · draw the FBD</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">FRI</span><span class="day-n">16.5</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Motor and gearbox selection</h3>
+        <div class="entry"><p>
+          Selected a motor and gearbox per joint against the torques from Thursday,
+          working from the shoulder outward since it carries the most. Recorded the
+          trade-off to check in week 17: a gearbox multiplies torque and divides speed
+          in the same ratio, so a ratio large enough for a steel arm will cost cycle
+          time. Noted that the shoulder requirement is far beyond a hobby servo and
+          needs a geared industrial drive.
+        </p></div>
+        <span class="draw">Graph 9 · plot torque vs reach</span>
+      </div>
+    </div>
+
+    <figure>
+      <div class="fig-head"><span>Sketch 8 — free body diagram</span><b>draw this</b></div>
+      <div class="fig-body">
+        <svg viewBox="0 0 620 210" role="img" aria-label="Free body diagram of the extended arm with link weights and payload">
+          <line x1="60" y1="80" x2="250" y2="80" class="acc"/>
+          <line x1="250" y1="80" x2="420" y2="80" class="acc"/>
+          <line x1="420" y1="80" x2="500" y2="80" class="acc"/>
+          <circle cx="60" cy="80" r="8" class="ln"/>
+          <circle cx="250" cy="80" r="7" class="ln"/>
+          <circle cx="420" cy="80" r="6" class="ln"/>
+          <rect x="492" y="70" width="22" height="22" class="ln"/>
+          <text x="26" y="62" class="dim">SHOULDER</text>
+          <text x="228" y="62" class="dim">ELBOW</text>
+          <text x="400" y="62" class="dim">WRIST</text>
+          <line x1="150" y1="80" x2="150" y2="126" class="mk"/>
+          <polygon points="146,126 150,138 154,126" class="mk" fill="none"/>
+          <text x="126" y="154" class="mkt">m1·g</text>
+          <line x1="330" y1="80" x2="330" y2="120" class="mk"/>
+          <polygon points="326,120 330,132 334,120" class="mk" fill="none"/>
+          <text x="308" y="148" class="mkt">m2·g</text>
+          <line x1="460" y1="80" x2="460" y2="114" class="mk"/>
+          <polygon points="456,114 460,126 464,114" class="mk" fill="none"/>
+          <text x="440" y="142" class="mkt">m3·g</text>
+          <line x1="503" y1="92" x2="503" y2="150" class="mk"/>
+          <polygon points="499,150 503,162 507,150" class="mk" fill="none"/>
+          <text x="482" y="178" class="mkt">payload</text>
+          <path d="M 60 56 A 24 24 0 0 1 84 80" class="acc"/>
+          <polygon points="80,54 88,60 78,64" class="fill-acc"/>
+          <text x="72" y="40" class="acct">T_s</text>
+          <line x1="60" y1="192" x2="503" y2="192" class="ln2"/>
+          <line x1="60" y1="186" x2="60" y2="198" class="ln2"/>
+          <line x1="503" y1="186" x2="503" y2="198" class="ln2"/>
+          <text x="240" y="186" class="dim">r = 857.5</text>
+        </svg>
+      </div>
+      <figcaption>
+        Worst case is the fully extended horizontal pose: every mass at its maximum
+        moment arm at once. Unlike a two-link arm, each link here contributes its own
+        term, so the sum runs outward from the joint to the tool.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= WEEK 17 ================= -->
+  <section class="week">
+    <div class="week-head">
+      <span class="week-no">Week 17</span>
+      <h2>Drawing set and control</h2>
+    </div>
+    <p class="week-aim">
+      Turn the model into a document someone could manufacture from, then make it move
+      accurately and in the right order.
+    </p>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">MON</span><span class="day-n">17.1</span><span class="tool t-fusion">Fusion</span></div>
+      <div>
+        <h3 class="day-title">Assembly drawing, parts list and balloons</h3>
+        <div class="entry cad"><p>
+          Produced the assembly sheet with an isometric view, a ballooned parts list
+          and a completed title block. Checked every balloon lands on the component it
+          names and that the parts list matches the browser tree. Recorded the sheet
+          count and what each detail sheet covers.
+        </p></div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">TUE</span><span class="day-n">17.2</span><span class="tool t-fusion">Fusion</span></div>
+      <div>
+        <h3 class="day-title">Clean up the auto-dimensioned sheets</h3>
+        <div class="entry cad"><p>
+          Auto-dimension places dimensions quickly but stacks them: found overlapping
+          text where two values printed on top of each other, a duplicated overall
+          dimension, and a leader pointing into empty space. Dragged each clear and
+          deleted the duplicates. Also found the parts list skipping an item because a
+          hidden component drops out of the list while still consuming a balloon number
+          — showed the component so the numbering runs unbroken.
+        </p></div>
+        <span class="draw">Note · list every defect you fixed</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">WED</span><span class="day-n">17.3</span><span class="tool t-python">Python</span></div>
+      <div>
+        <h3 class="day-title">Control architecture and PID</h3>
+        <div class="entry"><p>
+          Specified closed-loop position control on each joint independently, and drew
+          the loop: demanded angle, error, controller, drive, motor, link, with the
+          encoder feeding the measured angle back. Simulated one joint as a second-order
+          system and swept the PID gains. Proportional alone left a steady-state error
+          because gravity holds the arm off target; integral removed it and derivative
+          damped the overshoot. Settled slightly over-damped, since overshoot on a
+          loaded arm swings the payload.
+        </p></div>
+        <span class="draw">Graph 10 · draw the step responses</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">THU</span><span class="day-n">17.4</span><span class="tool t-python">Python</span></div>
+      <div>
+        <h3 class="day-title">Trajectory and cycle time</h3>
+        <div class="entry"><p>
+          Generated a trapezoidal velocity profile for each move and plotted position,
+          velocity and acceleration against time. Summed the segment times for a full
+          pick-and-place cycle and compared against the target. Noted that the
+          acceleration trace is a square wave, and those instantaneous steps are the
+          jerk that shakes a long steel arm — an S-curve profile is the fix if
+          vibration shows up.
+        </p></div>
+        <span class="draw">Graph 11 · draw the three curves</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">FRI</span><span class="day-n">17.5</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">State machine and week review</h3>
+        <div class="entry"><p>
+          Wrote the cycle as a state machine: Home → Wait → Approach → Grip → Lift →
+          Traverse → Release → Return, with a defined transition out of every state and
+          a fault transition from any state to Safe Stop. Traverse dominates the time
+          budget. Week's finding recorded honestly, including whether the gear ratios
+          chosen in week 16 still meet the cycle time or force a second pass.
+        </p></div>
+        <span class="draw">Sketch 12 · draw the state diagram</span>
+      </div>
+    </div>
+
+    <figure>
+      <div class="fig-head"><span>Graph 10 — PID step response</span><b>draw this</b></div>
+      <div class="fig-body">
+        <svg viewBox="0 0 520 250" role="img" aria-label="Three step responses: under-damped, critically damped and over-damped">
+          <line x1="60" y1="210" x2="60" y2="26" class="ln"/>
+          <line x1="60" y1="210" x2="470" y2="210" class="ln"/>
+          <text x="14" y="30" class="dim">angle</text>
+          <text x="430" y="236" class="dim">time</text>
+          <line x1="60" y1="88" x2="470" y2="88" class="ln2 dash"/>
+          <text x="476" y="92" class="dim">target</text>
+          <path d="M 60 210 C 100 210 108 40 148 40 C 178 40 182 118 210 118
+                   C 240 118 244 74 272 74 C 310 74 320 92 470 88" class="mk"/>
+          <text x="150" y="32" class="mkt">under-damped</text>
+          <path d="M 60 210 C 120 210 130 88 200 88 L 470 88" class="acc"/>
+          <text x="212" y="106" class="acct">critically damped</text>
+          <path d="M 60 210 C 160 210 220 132 320 100 C 380 90 420 88 470 88" class="ln2"/>
+          <text x="352" y="140" class="dim">over-damped</text>
+        </svg>
+      </div>
+      <figcaption>
+        Aim slightly to the right of critical. On a loaded arm, overshoot is the payload
+        swinging on the gripper.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <div class="fig-head"><span>Sketch 12 — pick-and-place state machine</span><b>draw this</b></div>
+      <div class="fig-body">
+        <svg viewBox="0 0 660 250" role="img" aria-label="State machine for the pick and place cycle with a fault path to safe stop">
+          <g class="ln">
+            <rect x="16"  y="40" width="84" height="42"/>
+            <rect x="130" y="40" width="84" height="42"/>
+            <rect x="244" y="40" width="84" height="42"/>
+            <rect x="358" y="40" width="84" height="42"/>
+            <rect x="472" y="40" width="84" height="42"/>
+            <rect x="244" y="140" width="84" height="42"/>
+            <rect x="130" y="140" width="84" height="42"/>
+          </g>
+          <text x="34"  y="66">HOME</text>
+          <text x="140" y="66">WAIT</text>
+          <text x="252" y="66">APPROACH</text>
+          <text x="382" y="66">GRIP</text>
+          <text x="490" y="66">LIFT</text>
+          <text x="252" y="166">TRAVERSE</text>
+          <text x="140" y="166">RELEASE</text>
+          <g class="ln">
+            <line x1="100" y1="61" x2="124" y2="61"/><polygon points="124,57 134,61 124,65" class="fill-ink"/>
+            <line x1="214" y1="61" x2="238" y2="61"/><polygon points="238,57 248,61 238,65" class="fill-ink"/>
+            <line x1="328" y1="61" x2="352" y2="61"/><polygon points="352,57 362,61 352,65" class="fill-ink"/>
+            <line x1="442" y1="61" x2="466" y2="61"/><polygon points="466,57 476,61 466,65" class="fill-ink"/>
+          </g>
+          <path d="M 514 82 L 514 161 L 334 161" class="ln"/>
+          <polygon points="334,157 324,161 334,165" class="fill-ink"/>
+          <line x1="244" y1="161" x2="220" y2="161" class="ln"/>
+          <polygon points="220,157 210,161 220,165" class="fill-ink"/>
+          <path d="M 172 140 L 172 88" class="ln"/>
+          <polygon points="168,88 172,78 176,88" class="fill-ink"/>
+          <text x="222" y="196" class="dim">part detected</text>
+          <text x="374" y="34" class="dim">at pick pose</text>
+          <rect x="472" y="176" width="104" height="42" class="mk"/>
+          <text x="486" y="202" class="mkt">SAFE STOP</text>
+          <path d="M 400 210 L 466 200" class="mk dash"/>
+          <text x="330" y="222" class="mkt">any state, on fault</text>
+        </svg>
+      </div>
+      <figcaption>
+        Every state needs a transition out and a route to Safe Stop. A state with no
+        exit condition is a machine that hangs on the bench.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= WEEK 18 ================= -->
+  <section class="week">
+    <div class="week-head">
+      <span class="week-no">Week 18</span>
+      <h2>Safety, integration and hand-in</h2>
+    </div>
+    <p class="week-aim">
+      Show the design is safe and pull the five weeks together. If the project ends at
+      week 17, move Monday and Tuesday into it and drop the rest.
+    </p>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">MON</span><span class="day-n">18.1</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">FMEA</h3>
+        <div class="entry"><p>
+          Carried out a failure mode and effects analysis across the subsystems, scoring
+          each mode for severity, occurrence and detection and multiplying for a risk
+          priority number. The highest was gripper release on power loss — a steel part
+          dropped from 800 mm is a safety problem, not just a quality one — so specified
+          a normally-closed gripper that holds without power. A gravity-backdriving joint
+          on power loss scored next and needs a fail-safe brake.
+        </p></div>
+        <span class="draw">Sketch 13 · draw the FMEA table</span>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">TUE</span><span class="day-n">18.2</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Safety and risk assessment</h3>
+        <div class="entry"><p>
+          Wrote the risk assessment: trapping points between the links, crushing at the
+          bins, and unexpected start-up during maintenance. A six-axis arm with an
+          857.5 mm reach sweeps a large volume, so the guarded envelope is set by that
+          radius plus the payload. Specified a latching emergency stop that removes drive
+          power directly rather than through software, and an interlocked access door.
+        </p></div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">WED</span><span class="day-n">18.3</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Integration and power budget</h3>
+        <div class="entry"><p>
+          Drew the full signal and power schematic showing all six drives, the encoders,
+          the limit switches and the e-stop chain. Totalled peak current across the six
+          motors plus the controller and sensors, and sized the supply with headroom for
+          stall current on the shoulder, which dominates.
+        </p></div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">THU</span><span class="day-n">18.4</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Cross-check every number across the documents</h3>
+        <div class="entry"><p>
+          Went through the report checking that figures agree between sections: the link
+          masses in the free body diagram match the Fusion properties, and the reach in
+          the workspace discussion matches the drawing set. Confirmed the two-link
+          worked example is labelled as such everywhere it appears, so none of its
+          figures reads as describing the modelled arm, and that the cited paper is
+          presented as a reference rather than as this design.
+        </p></div>
+      </div>
+    </div>
+
+    <div class="day">
+      <div class="day-rail"><span class="day-code">FRI</span><span class="day-n">18.5</span><span class="tool t-paper">Paper</span></div>
+      <div>
+        <h3 class="day-title">Hand-in and reflection</h3>
+        <div class="entry"><p>
+          Finalised the report and slides. Reflection: the decision that drove everything
+          downstream was building in steel at this scale, which set the joint torques and
+          therefore the drives, the power budget and the cycle time. If I repeated the
+          project I would take the mass properties out of the CAD before choosing motors
+          rather than after, because sizing and geometry are coupled and I worked them in
+          the wrong order.
+        </p></div>
+      </div>
+    </div>
+
+    <figure>
+      <div class="fig-head"><span>Sketch 13 — FMEA table layout</span><b>draw this</b></div>
+      <div class="fig-body">
+        <svg viewBox="0 0 660 200" role="img" aria-label="FMEA table with severity, occurrence, detection and RPN columns">
+          <g class="ln2">
+            <line x1="16" y1="30" x2="644" y2="30"/><line x1="16" y1="58" x2="644" y2="58"/>
+            <line x1="16" y1="90" x2="644" y2="90"/><line x1="16" y1="122" x2="644" y2="122"/>
+            <line x1="16" y1="154" x2="644" y2="154"/>
+            <line x1="16" y1="30" x2="16" y2="154"/><line x1="160" y1="30" x2="160" y2="154"/>
+            <line x1="300" y1="30" x2="300" y2="154"/><line x1="360" y1="30" x2="360" y2="154"/>
+            <line x1="420" y1="30" x2="420" y2="154"/><line x1="480" y1="30" x2="480" y2="154"/>
+            <line x1="644" y1="30" x2="644" y2="154"/>
+          </g>
+          <text x="26"  y="50" class="acct">ITEM</text>
+          <text x="170" y="50" class="acct">FAILURE MODE</text>
+          <text x="312" y="50" class="acct">SEV</text>
+          <text x="374" y="50" class="acct">OCC</text>
+          <text x="432" y="50" class="acct">DET</text>
+          <text x="492" y="50" class="acct">RPN / ACTION</text>
+          <text x="26"  y="79" class="dim">Gripper</text>
+          <text x="170" y="79" class="dim">releases on power loss</text>
+          <text x="316" y="79" class="dim">9</text><text x="378" y="79" class="dim">3</text><text x="436" y="79" class="dim">5</text>
+          <text x="492" y="79" class="mkt">135 — NC gripper</text>
+          <text x="26"  y="111" class="dim">Shoulder</text>
+          <text x="170" y="111" class="dim">backdrives on power loss</text>
+          <text x="316" y="111" class="dim">8</text><text x="378" y="111" class="dim">4</text><text x="436" y="111" class="dim">4</text>
+          <text x="492" y="111" class="mkt">128 — fail-safe brake</text>
+          <text x="26"  y="143" class="dim">Gearbox</text>
+          <text x="170" y="143" class="dim">backlash grows</text>
+          <text x="316" y="143" class="dim">4</text><text x="378" y="143" class="dim">5</text><text x="436" y="143" class="dim">4</text>
+          <text x="492" y="143" class="dim">80 — service interval</text>
+          <text x="16" y="184" class="dim">RPN = SEV × OCC × DET. Above 100 needs a design action, not a note.</text>
+        </svg>
+      </div>
+      <figcaption>
+        Three rows is enough for the logbook; the full table goes in the report. A high
+        RPN has to force a design change, which is why the first two rows changed the
+        gripper and added a brake.
+      </figcaption>
+    </figure>
+  </section>
+
+  <div class="note">
+    <h3>Keeping it honest</h3>
+    <ul>
+      <li><strong>The worked example is fenced everywhere it appears.</strong> Its
+      400 mm reach and 0.5 kg payload describe no physical object. If a marker can
+      point at a figure and ask which arm it belongs to, the fencing has failed.</li>
+      <li><strong>Fill the mass table before sizing anything.</strong> Every torque,
+      drive and power figure downstream depends on it, and a steel arm at 857 mm is
+      far heavier than intuition suggests.</li>
+      <li><strong>A cycle time that misses is a result, not a failure.</strong> Finding
+      that the gear ratios needed for the torque cost you the target is exactly the
+      coupling the report should discuss.</li>
+      <li><strong>The cited paper is someone else's.</strong> Jadhav et al. describe a
+      3-DOF arm with different link lengths. Reference it for method; take no numbers
+      from it.</li>
+      <li><strong>Four weeks only?</strong> Move Monday and Tuesday of week 18 into
+      week 17 in place of the trajectory day, and fold cycle time into the PID day.</li>
+    </ul>
+  </div>
+
+</div>
