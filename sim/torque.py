@@ -75,8 +75,13 @@ class Link:
 
 
 # Filled from Fusion. Names match the browser tree in the .f3d.
+# Mass is pose-independent, so it can be read in whatever pose the model happens
+# to be in. com_x_mm cannot: it has to be read with the arm straight out and
+# horizontal, because that is the pose the worst-case moment arm is defined in.
+# The two columns therefore get filled on separate passes.
 LINKS: list[Link] = [
-    Link("Jaw (shoulder)"),
+    # Fusion: 18907.772 g at 7.849 g/cm^3, so steel really is applied.
+    Link("Jaw (shoulder)", mass_kg=18.908),
     Link("Jaw_2"),
     Link("Jaw_3"),
     Link("Jaw_4"),
@@ -126,16 +131,27 @@ def shoulder_torque(
     """
     links = links if links is not None else LINKS
 
-    missing = [l.name for l in links if l.mass_kg is None or l.com_x_mm is None]
-    if missing:
-        raise UnfilledMassTable(
-            "Mass table is not filled in, so there is no torque to report.\n"
-            "  Missing mass and/or centre of mass for:\n"
-            + "".join(f"    - {n}\n" for n in missing)
-            + "  Read them from Fusion: select the component, then\n"
-            "  Properties -> Physical. Enter them in LINKS in sim/torque.py.\n"
-            "  To see the output format meanwhile: python -m sim.torque --demo"
-        )
+    no_mass = [l.name for l in links if l.mass_kg is None]
+    no_com = [l.name for l in links if l.com_x_mm is None]
+    if no_mass or no_com or SHOULDER_X_MM is None:
+        parts = ["Mass table is not filled in, so there is no torque to report.\n"]
+        if no_mass:
+            parts.append(
+                "\n  Missing MASS. Read in any pose, it does not depend on one:\n"
+                + "".join(f"    - {n}\n" for n in no_mass))
+        pending = list(no_com)
+        if SHOULDER_X_MM is None:
+            pending.append("SHOULDER_X_MM (the shoulder joint itself)")
+        if pending:
+            parts.append(
+                "\n  Missing CENTRE OF MASS. Pose the arm straight out and\n"
+                "  horizontal FIRST: the worst case is defined in that pose, and\n"
+                "  a folded pose gives a smaller, wrong answer.\n"
+                + "".join(f"    - {n}\n" for n in pending))
+        parts.append(
+            "\n  Both come from Properties -> Physical, in WORLD coordinates.\n"
+            "  Output format meanwhile: python -m sim.torque --demo\n")
+        raise UnfilledMassTable("".join(parts))
 
     rows = []
     total = 0.0
