@@ -3,35 +3,35 @@ Joint torque for the REAL arm, from the CAD mass properties.
 
 This module is about `robotic arm.f3d`, not the worked example in `arm.py`.
 
-The mass table below is empty, and that is deliberate. Mass, centre of mass and
-inertia live inside Fusion's proprietary geometry and cannot be read out of the
-.f3d by any tool here, so the only honest source is Fusion itself:
+The arm was never posed straight out, so the exact worst-case torque is not
+available: a centre of mass moves with the pose, and the saved pose is folded.
+The design therefore rests on an UPPER BOUND, which needs only the masses:
 
-    select a component -> Properties -> Physical
-    read the Mass row, and the X of the Center of Mass row, in WORLD
-    coordinates, with the arm posed straight out and horizontal
+    put every gram at full reach -> 411 N.m, or 822 N.m with the safety factor
 
-Set SHOULDER_X_MM the same way, once, from the shoulder joint. Every moment arm
-is then computed rather than measured by hand.
+That is rigorous rather than approximate. Placing mass further out than it can
+physically go can only overstate the moment, so a drive meeting the bound meets
+the real requirement whatever the true figure turns out to be. The cost is that
+the bound is pessimistic: the heavy links sit near the shoulder and only the
+0.28 kg fingers reach the end, so the true value is likely well under half.
+Sizing against it buys a heavier drive than strictly needed, which is a
+deliberate and defensible trade, but it has to be reported as a bound and never
+as a measurement.
 
-Until those are filled in, `shoulder_torque()` raises rather than returning a
-number. That is the point. A steel arm reaching 857.5 mm needs vastly more
-torque than the 400 mm aluminium worked example, and a placeholder that quietly
-produced "about 5 N.m" would send the motor selection to a drive an order of
-magnitude too small, with nothing on screen to suggest anything was wrong.
-
-There is a `--demo` mode that runs the arithmetic on visibly fake masses, so you
-can see the shape of the output before you have the real ones. Everything it
-prints is stamped PLACEHOLDER and none of it belongs in a report.
+To replace it with the exact figure later: pose the arm straight out and
+horizontal, re-read every Center of Mass into `com_extended`, set SHOULDER_X_MM,
+and run with --exact.
 
 Run it:
-    python -m sim.torque           # refuses, and tells you what to fill in
-    python -m sim.torque --demo    # fake masses, clearly labelled
+    python -m sim.torque           # the bound, and the base overturning moment
+    python -m sim.torque --exact   # worst case; refuses until the pose is read
+    python -m sim.torque --demo    # fake masses, to see the output shape
 """
 
 from __future__ import annotations
 
 import argparse
+import math
 from dataclasses import dataclass
 
 G = 9.81           # m/s^2
@@ -280,44 +280,65 @@ def _report(payload_kg: float, links: list[Link], placeholder: bool) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--exact", action="store_true",
+                        help="worst-case figure; needs the extended-pose centres")
     parser.add_argument("--demo", action="store_true",
-                        help="run with visibly fake masses to see the output shape")
+                        help="visibly fake masses, to see the output shape")
     parser.add_argument("--payload", type=float, default=2.0,
                         help="payload mass in kg (default 2.0)")
-    parser.add_argument("--bound", action="store_true",
-                        help="upper bound from masses alone, no pose needed")
     args = parser.parse_args()
-
-    if args.bound:
-        r = upper_bound_torque(args.payload)
-        print(f"\n  Upper bound on shoulder torque, from masses alone.")
-        print(f"  Assumes every gram sits at full reach, so the true figure is")
-        print(f"  strictly lower. No pose or centre of mass needed.\n")
-        print(f"    arm above the shoulder   {r['arm_kg']:>9.3f} kg")
-        print(f"    payload                  {r['payload_kg']:>9.3f} kg")
-        print(f"    total                    {r['total_kg']:>9.3f} kg")
-        print(f"    lever (full reach)       {REACH_EXTENDED_MM/1000:>9.4f} m")
-        print(f"    ---------------------------------------")
-        print(f"    bound                    {r['bound_nm']:>9.1f} N.m")
-        print(f"    x SF {r['safety_factor']}                  "
-              f"{r['design_nm']:>9.1f} N.m\n")
-        print("  Gear ratio to meet the BOUND (an overestimate):")
-        for motor_nm in (1.0, 3.0, 10.0, 30.0):
-            print(f"    {motor_nm:>5.1f} N.m motor  ->  "
-                  f"{gear_ratio_for(r['design_nm'], motor_nm):>7.1f}:1")
-        return
 
     if args.demo:
         global SHOULDER_X_MM
-        SHOULDER_X_MM = 0.0   # fake table is already measured from the joint
+        SHOULDER_X_MM = 0.0
         _report(args.payload, _demo_table(), placeholder=True)
         return
 
-    try:
-        _report(args.payload, LINKS, placeholder=False)
-    except UnfilledMassTable as exc:
-        print(f"\n{exc}")
-        raise SystemExit(1)
+    if args.exact:
+        try:
+            _report(args.payload, LINKS, placeholder=False)
+        except UnfilledMassTable as exc:
+            print(f"\n{exc}")
+            raise SystemExit(1)
+        return
+
+    # Default: the bound. The arm was never posed straight out, so the exact
+    # worst case cannot be computed, and this is what the design rests on.
+    r = upper_bound_torque(args.payload)
+    com = assembly_com()
+    cx, cy, cz = com["com_mm"]
+    horiz = math.hypot(cx, cz)
+
+    print("\n  SHOULDER TORQUE - UPPER BOUND")
+    print("  " + "=" * 58)
+    print("  Every gram placed at full reach, which can only overstate the")
+    print("  moment. The true worst case is lower, but is not computed here:")
+    print("  it needs the centres of mass re-read with the arm straight out.")
+    print("  Quote this as a bound, never as a measurement.\n")
+    print(f"    arm above the shoulder   {r['arm_kg']:>9.3f} kg")
+    print(f"    payload                  {r['payload_kg']:>9.3f} kg")
+    print(f"    total                    {r['total_kg']:>9.3f} kg")
+    print(f"    lever, full reach        {REACH_EXTENDED_MM/1000:>9.4f} m")
+    print("    " + "-" * 38)
+    print(f"    bound                    {r['bound_nm']:>9.1f} N.m")
+    print(f"    x SF {r['safety_factor']}                  "
+          f"{r['design_nm']:>9.1f} N.m  <- size against this\n")
+
+    print("  Reduction needed at the shoulder:\n")
+    print(f"    {'motor':>10}{'ratio':>12}   {'class of drive':<28}")
+    print("    " + "-" * 52)
+    for motor_nm, kind in ((1.0, "small servo"),
+                           (3.0, "mid servo, harmonic drive"),
+                           (10.0, "industrial servo, planetary"),
+                           (30.0, "large servo, low reduction")):
+        ratio = gear_ratio_for(r["design_nm"], motor_nm)
+        print(f"    {motor_nm:>7.1f} N.m{ratio:>10.1f}:1   {kind:<28}")
+
+    print("\n  Where the arm balances, in the SAVED pose (exact, no bound):")
+    print(f"    centre of mass   ({cx:.1f}, {cy:.1f}, {cz:.1f}) mm")
+    print(f"    {horiz:.1f} mm horizontally from the column, {cy:.1f} mm up")
+    print(f"    overturning moment on the base fixing: "
+          f"{r['arm_kg'] * G * horiz / 1000:.1f} N.m\n")
 
 
 if __name__ == "__main__":

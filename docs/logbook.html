@@ -620,20 +620,26 @@ def inverse(x, y, elbow_up=True):
       <div>
         <h3 class="day-title">Read the mass properties</h3>
         <div class="entry cad"><p>
-          Took mass, centre of mass and moment of inertia for every component from
-          Properties → Physical with steel applied, and tabulated them. This is the
-          number the whole sizing calculation rests on: a steel arm at this scale is
-          heavy, and estimating it would put the joint torques out by a large factor.
-          Also recorded the total assembly mass for the base-fixing calculation.
+          Took mass and centre of mass for every component from Properties → Physical
+          and tabulated them. Every part reports 7.85 g/cm³, so steel really is
+          applied and no component was left on a default material. The arm above the
+          shoulder is 46.855 kg, and it balances 370.6 mm out from the column at
+          373.8 mm up, which is the overturning moment the base fixing has to resist.
+          Noted that the centres were read in the saved folded pose, so they support
+          the balance calculation but not the worst-case joint torque.
         </p></div>
         <table class="tbl">
-          <tr><th>Component</th><th>Mass (kg)</th><th>CoM from joint (mm)</th></tr>
-          <tr><td>Base</td><td>—</td><td>—</td></tr>
-          <tr><td>Jaw (shoulder)</td><td>—</td><td>—</td></tr>
-          <tr><td>Jaw_2 … Jaw_5</td><td>—</td><td>—</td></tr>
-          <tr><td>Jaw_6 + gripper</td><td>—</td><td>—</td></tr>
+          <tr><th>Component</th><th>Mass (kg)</th></tr>
+          <tr><td>Jaw (shoulder)</td><td>18.908</td></tr>
+          <tr><td>Jaw_2</td><td>7.904</td></tr>
+          <tr><td>Jaw_3</td><td>11.365</td></tr>
+          <tr><td>Jaw_4</td><td>4.842</td></tr>
+          <tr><td>Jaw_5</td><td>2.682</td></tr>
+          <tr><td>Jaw_6</td><td>0.600</td></tr>
+          <tr><td>2 × gripper finger</td><td>0.277 each</td></tr>
+          <tr><td><strong>total above the shoulder</strong></td><td><strong>46.855</strong></td></tr>
         </table>
-        <span class="draw">Table · fill this from Fusion</span>
+        <span class="draw">Table · copy this into the logbook</span>
       </div>
     </div>
 
@@ -656,12 +662,14 @@ def inverse(x, y, elbow_up=True):
         <h3 class="day-title">Free body diagram and joint torque</h3>
         <div class="entry"><p>
           Drew the free body diagram for the worst case, the arm fully extended
-          horizontally at 857.5 mm with the payload gripped, and took moments about the
-          shoulder. Every link above the joint contributes its own weight at its own
-          centre of mass, so the sum runs outward from the joint to the tool. Applied a
-          safety factor of 2 for friction and assembly tolerance.
+          horizontally at 857.5 mm with the payload gripped. Took the masses from
+          Fusion, 46.855 kg above the shoulder, and bounded the moment rather than
+          computing it exactly: placing every gram at full reach can only overstate
+          it, which gives 411 N·m, or 822 N·m with a safety factor of 2. The bound is
+          rigorous and deliberately pessimistic, since the heavy links sit near the
+          shoulder and only the 0.28 kg fingers reach the end.
         </p></div>
-        <p class="formula">T_shoulder = Σ ( m_i · g · r_i )  ×  SF</p>
+        <p class="formula">T_bound = ( Σm_i + m_payload ) · g · R_max  ×  SF  =  822 N·m</p>
         <span class="draw">Sketch 8 · draw the FBD</span>
       </div>
     </div>
@@ -671,12 +679,14 @@ def inverse(x, y, elbow_up=True):
       <div>
         <h3 class="day-title">Motor and gearbox selection</h3>
         <div class="entry"><p>
-          Selected a motor and gearbox per joint against the torques from Thursday,
-          working from the shoulder outward since it carries the most. Recorded the
-          trade-off to check in week 17: a gearbox multiplies torque and divides speed
-          in the same ratio, so a ratio large enough for a steel arm will cost cycle
-          time. Noted that the shoulder requirement is far beyond a hobby servo and
-          needs a geared industrial drive.
+          Sized the shoulder drive against the 822 N·m bound. A 10 N·m industrial
+          servo needs 82:1; a 3 N·m servo through a harmonic drive needs 274:1.
+          Recorded plainly that this is a bound and not a measurement: the exact
+          figure needs the centres of mass re-read with the arm posed straight out,
+          and sizing against a pessimistic bound buys a heavier drive than the arm
+          strictly needs. Trade-off to check in week 17: a gearbox divides speed in
+          the same ratio it multiplies torque, so a reduction this large costs cycle
+          time.
         </p></div>
         <span class="draw">Graph 9 · plot torque vs reach</span>
       </div>

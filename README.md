@@ -91,6 +91,50 @@ below is filled from Fusion.
 
 ---
 
+## Mass properties and the shoulder torque
+
+Read from Fusion, Properties → Physical. Every component reports 7.85 g/cm³, so
+steel is genuinely applied throughout.
+
+| Component | Mass (kg) |
+|---|---|
+| Jaw (shoulder) | 18.908 |
+| Jaw_2 | 7.904 |
+| Jaw_3 | 11.365 |
+| Jaw_4 | 4.842 |
+| Jaw_5 | 2.682 |
+| Jaw_6 | 0.600 |
+| gripper fingers, 2 off | 0.277 each |
+| **above the shoulder** | **46.855** |
+
+**The shoulder torque is quoted as an upper bound, not a measurement.** The arm
+was never posed straight out, and a centre of mass moves with the pose, so the
+exact worst case is not available. Instead every gram is placed at full reach,
+which can only overstate the moment:
+
+    (46.855 + 2 payload) × 9.81 × 0.8575 = 411 N·m
+    × safety factor 2                    = 822 N·m
+
+This is rigorous rather than approximate — a drive meeting the bound meets the
+real requirement whatever the true figure is — but it is pessimistic. The heavy
+links sit near the shoulder and only the 0.28 kg fingers reach the end, so the
+true value is likely well under half. Sizing against it buys a heavier drive
+than strictly needed, which is a deliberate trade. **It must be reported as a
+bound.**
+
+At the shoulder that means roughly 82:1 off a 10 N·m industrial servo, or 274:1
+through a harmonic drive off a 3 N·m one.
+
+Separately, and exactly: the arm balances 370.6 mm horizontally from the column
+at 373.8 mm up, giving a 170.4 N·m overturning moment for the base fixing. That
+one needs no pose assumption.
+
+To replace the bound with the exact figure later, pose the arm straight out and
+horizontal, re-read every Center of Mass into `com_extended` in `sim/torque.py`,
+set `SHOULDER_X_MM`, and run `python -m sim.torque --exact`.
+
+---
+
 ## What cannot be read from the `.f3d` here
 
 The archive is a zip, but the geometry sits in compressed proprietary BREP
