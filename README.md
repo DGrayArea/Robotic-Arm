@@ -79,15 +79,18 @@ below is filled from Fusion.
 
 ## Known issues in the drawing set
 
-- **Parts list skips item 9.** It runs 1–8 then 10. `Jaw_6 (1) (1)` is
-  unchecked in the browser, so it is excluded from the list while its balloon
-  numbering still consumes a slot. Either show the component or renumber.
-- **Sheet 1 balloon 1** points into empty space near the bottom right rather
-  than at the Base.
-- **Overlapping dimension text** on several sheets, e.g. `129.04`/`129.89` and
-  `R4`/`Ø180` printing on top of each other. Auto-dimension placed them; they
-  need dragging clear.
-- **Duplicated overall dimension**, 306.51 mm appears twice on the Jaw sheet.
+Four defects, all from auto-dimensioning and one stray component. The geometry
+itself is fine. Step-by-step fixes are in **[docs/drawing-fixes.md](docs/drawing-fixes.md)**.
+
+- **Parts list skips item 9.** It runs 1–8 then 10. `Jaw_6 (1) (1)` is hidden in
+  the browser, so Fusion allocates it a number and then omits it from the list.
+  It looks like a leftover duplicate: same volume as `Jaw_6 (1)`, and every view
+  shows a two-finger gripper. Probably delete it.
+- **Sheet 1 balloon 1** points into empty space rather than at the Base.
+- **Overlapping dimension text** on several sheets — `129.04`/`129.89` printing
+  as `129.0489`, `R4`/`Ø180` as `R4 Ø1180`, `35`/`30` as `3θ`.
+- **306.51 appears twice** on the Jaw sheet, from two auto-dimension recipes
+  both including the overall width.
 
 ---
 
@@ -159,6 +162,7 @@ robotic arm.f3d                     Fusion archive, the source of truth
 dofijte.pdf                         reference paper (Jadhav et al.) — citation only
 Assets/                             11 screenshots of the model and drawings
 docs/logbook.html                   week 14-18 logbook, scoped to this arm
+docs/drawing-fixes.md               worklist for the four drawing defects
 sim/                                analysis scripts — see sim/README.md
 tests/                              32 tests for the kinematics
 outputs/figures/                    generated plots
