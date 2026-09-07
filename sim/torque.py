@@ -53,25 +53,21 @@ class Link:
     """
     One component, exactly as Fusion reports it.
 
-    Both fields come straight off Properties -> Physical, so nothing has to be
-    worked out on paper:
+        mass_kg      : the Mass row. Pose-independent.
+        com_saved    : the Center of Mass row, (x, y, z) in world mm, as read in
+                       the SAVED (folded) pose the model was in.
+        com_extended : the same row re-read with the arm straight out and
+                       horizontal. This is the one the worst case needs.
 
-        mass_kg   : the Mass row
-        com_x_mm  : the X of the Center of Mass row, in WORLD coordinates,
-                    with the arm posed straight out and horizontal
-
-    The moment arm is com_x_mm - SHOULDER_X_MM, computed in `moment_arm_mm()`.
-    Asking for a distance instead would mean doing that subtraction by hand for
-    seven parts, which is seven chances to get a sign or a datum wrong.
+    Both centres are kept because they answer different questions and are easy
+    to confuse. The saved pose gives where the arm balances as it sits, which is
+    what the base fixing has to resist. Only the extended pose gives the maximum
+    joint torque.
     """
     name: str
     mass_kg: float | None = None
-    com_x_mm: float | None = None
-
-    def moment_arm_mm(self) -> float:
-        if SHOULDER_X_MM is None:
-            raise UnfilledMassTable("SHOULDER_X_MM is not set.")
-        return self.com_x_mm - SHOULDER_X_MM
+    com_saved: tuple[float, float, float] | None = None
+    com_extended: tuple[float, float, float] | None = None
 
 
 # Filled from Fusion. Names match the browser tree in the .f3d.
@@ -80,26 +76,49 @@ class Link:
 # horizontal, because that is the pose the worst-case moment arm is defined in.
 # The two columns therefore get filled on separate passes.
 LINKS: list[Link] = [
-    # Masses read from Fusion, Properties -> Physical, in grams. Every one
-    # reports 7.85 g/cm^3, so steel is genuinely applied throughout rather than
-    # any part being left on a default material.
-    Link("Jaw (shoulder)",               mass_kg=18.908),   # 18907.772 g
-    Link("Jaw_2",                        mass_kg=7.904),    #  7903.653 g
-    Link("Jaw_3",                        mass_kg=11.365),   # 11365.247 g
-    Link("Jaw_4",                        mass_kg=4.842),    #  4842.335 g
-    Link("Jaw_5",                        mass_kg=2.682),    #  2681.898 g
-    Link("Jaw_6",                        mass_kg=0.600),    #   599.976 g
-    Link("Jaw_6 (1) finger",             mass_kg=0.277),    #   276.571 g
-    Link("Jaw_6 (1)(Mirror) finger",     mass_kg=0.277),    #   276.571 g
+    # Mass and centre of mass read from Fusion, Properties -> Physical.
+    # Every component reports 7.85 g/cm^3, so steel is genuinely applied
+    # throughout and no part was left on a default material.
+    #
+    # com_saved is the FOLDED pose the model was saved in. It is NOT the pose
+    # the worst-case joint torque is defined in, so it must not be used for
+    # drive selection. com_extended is still to be read.
+    Link("Jaw (shoulder)",           18.908, (-397.590, 165.139,  410.476)),
+    Link("Jaw_2",                     7.904, (-251.204, 323.253,  240.363)),
+    Link("Jaw_3",                    11.365, (-231.360, 468.502,   81.216)),
+    Link("Jaw_4",                     4.842, (-209.608, 737.122,   38.532)),
+    Link("Jaw_5",                     2.682, (-159.327, 770.937,   -5.280)),
+    Link("Jaw_6",                     0.600, (-119.672, 762.482,  -36.455)),
+    Link("Jaw_6 (1) finger",          0.277, ( -77.480, 778.967,  -95.095)),
+    Link("Jaw_6 (1)(Mirror) finger",  0.277, ( -63.594, 731.495,  -61.011)),
 ]
 
-# Jaw_6 (1) (1) is excluded: it is hidden in the browser and absent from the
-# parts list, which is the numbering gap flagged in the README. If it turns out
-# to belong in the assembly it is another 0.277 kg, about 0.6% of the total, so
-# it changes the drive selection not at all -- but the drawing still needs fixing.
+# Jaw_6 (1) (1) is excluded: hidden in the browser and absent from the parts
+# list, which is the numbering gap the README flags. Were it included it adds
+# 0.277 kg, about 0.6% of the total, so it changes no engineering conclusion --
+# the drawing still needs fixing.
 
-# Base is excluded on purpose: it sits below the shoulder axis, so it applies no
-# moment about it. It matters for the floor-fixing calculation, not this one.
+
+def assembly_com(links: list[Link] | None = None) -> dict:
+    """
+    Centre of mass of the whole arm above the shoulder, in the saved pose.
+
+    Exact, and needs no joint position: it is just the mass-weighted mean of the
+    component centres. Useful in its own right, because where the arm balances
+    is what the base fixing and the tipping check have to resist.
+
+    Pose-dependent, so this describes the arm as saved and nothing else.
+    """
+    links = links if links is not None else LINKS
+    missing = [l.name for l in links if l.mass_kg is None or l.com_saved is None]
+    if missing:
+        raise UnfilledMassTable("Missing mass or centre for: " + ", ".join(missing))
+
+    total = sum(l.mass_kg for l in links)
+    cx, cy, cz = (
+        sum(l.mass_kg * l.com_saved[i] for l in links) / total for i in range(3)
+    )
+    return {"total_kg": total, "com_mm": (cx, cy, cz)}
 
 
 class UnfilledMassTable(RuntimeError):
@@ -140,7 +159,7 @@ def shoulder_torque(
     links = links if links is not None else LINKS
 
     no_mass = [l.name for l in links if l.mass_kg is None]
-    no_com = [l.name for l in links if l.com_x_mm is None]
+    no_com = [l.name for l in links if l.com_extended is None]
     if no_mass or no_com or SHOULDER_X_MM is None:
         parts = ["Mass table is not filled in, so there is no torque to report.\n"]
         if no_mass:
@@ -164,7 +183,7 @@ def shoulder_torque(
     rows = []
     total = 0.0
     for link in links:
-        arm_mm = link.moment_arm_mm()
+        arm_mm = link.com_extended[0] - SHOULDER_X_MM
         moment = link.mass_kg * G * (arm_mm / 1000.0)
         total += moment
         rows.append((link.name, link.mass_kg, arm_mm, moment))
