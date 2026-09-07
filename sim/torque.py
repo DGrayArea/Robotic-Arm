@@ -8,7 +8,11 @@ inertia live inside Fusion's proprietary geometry and cannot be read out of the
 .f3d by any tool here, so the only honest source is Fusion itself:
 
     select a component -> Properties -> Physical
-    read Mass, and Center of Mass relative to the joint below it
+    read the Mass row, and the X of the Center of Mass row, in WORLD
+    coordinates, with the arm posed straight out and horizontal
+
+Set SHOULDER_X_MM the same way, once, from the shoulder joint. Every moment arm
+is then computed rather than measured by hand.
 
 Until those are filled in, `shoulder_torque()` raises rather than returning a
 number. That is the point. A steel arm reaching 857.5 mm needs vastly more
@@ -38,18 +42,36 @@ SAFETY_FACTOR = 2.0  # friction, assembly tolerance, and a margin on the estimat
 REACH_EXTENDED_MM = 857.5
 
 
+# World X of the shoulder rotation axis, with the arm in the extended pose.
+# Read it once from Fusion the same way as any centre of mass, then every
+# moment arm below is computed rather than measured by hand.
+SHOULDER_X_MM: float | None = None
+
+
 @dataclass
 class Link:
     """
-    One component, as Fusion reports it.
+    One component, exactly as Fusion reports it.
 
-    mass_kg  : Properties -> Physical -> Mass
-    com_mm   : distance from the SHOULDER axis to this link's centre of mass,
-               measured along the arm in the fully extended pose
+    Both fields come straight off Properties -> Physical, so nothing has to be
+    worked out on paper:
+
+        mass_kg   : the Mass row
+        com_x_mm  : the X of the Center of Mass row, in WORLD coordinates,
+                    with the arm posed straight out and horizontal
+
+    The moment arm is com_x_mm - SHOULDER_X_MM, computed in `moment_arm_mm()`.
+    Asking for a distance instead would mean doing that subtraction by hand for
+    seven parts, which is seven chances to get a sign or a datum wrong.
     """
     name: str
     mass_kg: float | None = None
-    com_mm: float | None = None
+    com_x_mm: float | None = None
+
+    def moment_arm_mm(self) -> float:
+        if SHOULDER_X_MM is None:
+            raise UnfilledMassTable("SHOULDER_X_MM is not set.")
+        return self.com_x_mm - SHOULDER_X_MM
 
 
 # Filled from Fusion. Names match the browser tree in the .f3d.
@@ -104,7 +126,7 @@ def shoulder_torque(
     """
     links = links if links is not None else LINKS
 
-    missing = [l.name for l in links if l.mass_kg is None or l.com_mm is None]
+    missing = [l.name for l in links if l.mass_kg is None or l.com_x_mm is None]
     if missing:
         raise UnfilledMassTable(
             "Mass table is not filled in, so there is no torque to report.\n"
@@ -118,9 +140,10 @@ def shoulder_torque(
     rows = []
     total = 0.0
     for link in links:
-        moment = link.mass_kg * G * (link.com_mm / 1000.0)
+        arm_mm = link.moment_arm_mm()
+        moment = link.mass_kg * G * (arm_mm / 1000.0)
         total += moment
-        rows.append((link.name, link.mass_kg, link.com_mm, moment))
+        rows.append((link.name, link.mass_kg, arm_mm, moment))
 
     payload_moment = payload_kg * G * (REACH_EXTENDED_MM / 1000.0)
     total += payload_moment
@@ -182,6 +205,8 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.demo:
+        global SHOULDER_X_MM
+        SHOULDER_X_MM = 0.0   # fake table is already measured from the joint
         _report(args.payload, _demo_table(), placeholder=True)
         return
 
