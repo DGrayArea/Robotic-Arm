@@ -65,10 +65,13 @@ enough to solve on paper and check in code, then applied to the real arm's DH
 table. Its 400 mm reach and 0.5 kg payload describe nothing physical, and it is
 fenced wherever it appears.
 
-**The reference paper** (`dofijte.pdf`) is Jadhav et al., *3-DOF Pick and Place
-Robotic Arm*, ISTE Vol 47, Aug 2024 — a 3-DOF arm with 240/235 mm links and
-~475 mm reach. It is **someone else's published work**. Cite it for method; take
-no numbers from it.
+**The reference paper** is Jadhav, V. S., Bhalekar, A. P., Jadhav, P., Munavalli,
+M. J. and Kadam, S. J., *3-DOF Pick and Place Robotic Arm*, ISTE, Vol. 47,
+Special Issue No. 1, August 2024, pp. 272–275 — a 3-DOF arm with 240/235 mm
+links and ~475 mm reach.
+
+It is **someone else's published work** and is deliberately not included in this
+repository. Cite it for method; take no numbers from it.
 
 The trap to avoid: the logbook originally sized a NEMA 17 with a 20:1 gearbox at
 about 5.0 N·m. That belongs to the 400 mm aluminium example. A steel arm at
@@ -159,7 +162,6 @@ the real model rather than on an assumed one.
 
 ```
 robotic arm.f3d                     Fusion archive, the source of truth
-dofijte.pdf                         reference paper (Jadhav et al.) — citation only
 Assets/                             11 screenshots of the model and drawings
 docs/logbook.html                   week 14-18 logbook, scoped to this arm
 docs/drawing-fixes.md               worklist for the four drawing defects

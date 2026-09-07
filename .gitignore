@@ -12,3 +12,7 @@ Pick-and-Place Arm Logbook_files/
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Third-party published paper (Jadhav et al., ISTE Vol 47). Kept locally as a
+# reference; not redistributed here. The README cites it.
+dofijte.pdf
