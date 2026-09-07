@@ -1,0 +1,8 @@
+.DS_Store
+
+# Fusion writes a lock file next to an open archive
+*.f3d.lock
+
+# Saved-webpage sidecar for the logbook HTML: hundreds of small chunks that
+# regenerate on re-save and say nothing about the design.
+Pick-and-Place Arm Logbook_files/
