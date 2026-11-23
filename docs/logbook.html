@@ -695,36 +695,39 @@ def inverse(x, y, elbow_up=True):
     <figure>
       <div class="fig-head"><span>Sketch 8 — free body diagram</span><b>draw this</b></div>
       <div class="fig-body">
-        <svg viewBox="0 0 620 210" role="img" aria-label="Free body diagram of the extended arm with link weights and payload">
-          <line x1="60" y1="80" x2="250" y2="80" class="acc"/>
-          <line x1="250" y1="80" x2="420" y2="80" class="acc"/>
-          <line x1="420" y1="80" x2="500" y2="80" class="acc"/>
-          <circle cx="60" cy="80" r="8" class="ln"/>
-          <circle cx="250" cy="80" r="7" class="ln"/>
-          <circle cx="420" cy="80" r="6" class="ln"/>
-          <rect x="492" y="70" width="22" height="22" class="ln"/>
-          <text x="26" y="62" class="dim">SHOULDER</text>
-          <text x="228" y="62" class="dim">ELBOW</text>
-          <text x="400" y="62" class="dim">WRIST</text>
-          <line x1="150" y1="80" x2="150" y2="126" class="mk"/>
-          <polygon points="146,126 150,138 154,126" class="mk" fill="none"/>
-          <text x="126" y="154" class="mkt">m1·g</text>
-          <line x1="330" y1="80" x2="330" y2="120" class="mk"/>
-          <polygon points="326,120 330,132 334,120" class="mk" fill="none"/>
-          <text x="308" y="148" class="mkt">m2·g</text>
-          <line x1="460" y1="80" x2="460" y2="114" class="mk"/>
-          <polygon points="456,114 460,126 464,114" class="mk" fill="none"/>
-          <text x="440" y="142" class="mkt">m3·g</text>
-          <line x1="503" y1="92" x2="503" y2="150" class="mk"/>
-          <polygon points="499,150 503,162 507,150" class="mk" fill="none"/>
+        <svg viewBox="0 0 620 230" role="img" aria-label="Free body diagram of the extended arm with link weights and payload">
+          <line x1="80" y1="92" x2="260" y2="92" class="acc"/>
+          <line x1="260" y1="92" x2="430" y2="92" class="acc"/>
+          <line x1="430" y1="92" x2="500" y2="92" class="acc"/>
+          <circle cx="80" cy="92" r="8" class="ln"/>
+          <circle cx="260" cy="92" r="7" class="ln"/>
+          <circle cx="430" cy="92" r="6" class="ln"/>
+          <rect x="492" y="82" width="22" height="22" class="ln fill-card"/>
+          <text x="48" y="118" class="dim">SHOULDER</text>
+          <text x="238" y="74" class="dim">ELBOW</text>
+          <text x="410" y="74" class="dim">WRIST</text>
+
+          <line x1="160" y1="92" x2="160" y2="132" class="mk"/>
+          <polygon points="156,132 160,144 164,132" class="mk fill-mk"/>
+          <text x="136" y="160" class="mkt">m1&#183;g</text>
+          <line x1="340" y1="92" x2="340" y2="126" class="mk"/>
+          <polygon points="336,126 340,138 344,126" class="mk fill-mk"/>
+          <text x="318" y="154" class="mkt">m2&#183;g</text>
+          <line x1="462" y1="92" x2="462" y2="120" class="mk"/>
+          <polygon points="458,120 462,132 466,120" class="mk fill-mk"/>
+          <text x="442" y="148" class="mkt">m3&#183;g</text>
+          <line x1="503" y1="104" x2="503" y2="150" class="mk"/>
+          <polygon points="499,150 503,162 507,150" class="mk fill-mk"/>
           <text x="482" y="178" class="mkt">payload</text>
-          <path d="M 60 56 A 24 24 0 0 1 84 80" class="acc"/>
-          <polygon points="80,54 88,60 78,64" class="fill-acc"/>
-          <text x="72" y="40" class="acct">T_s</text>
-          <line x1="60" y1="192" x2="503" y2="192" class="ln2"/>
-          <line x1="60" y1="186" x2="60" y2="198" class="ln2"/>
-          <line x1="503" y1="186" x2="503" y2="198" class="ln2"/>
-          <text x="240" y="186" class="dim">r = 857.5</text>
+
+          <path d="M 80 48 A 44 44 0 0 1 124 92" class="acc"/>
+          <polygon points="118,84 128,94 115,98" class="fill-acc"/>
+          <text x="92" y="36" class="acct">T_s, shoulder torque</text>
+
+          <line x1="80" y1="196" x2="503" y2="196" class="ln2"/>
+          <line x1="80" y1="190" x2="80" y2="202" class="ln2"/>
+          <line x1="503" y1="190" x2="503" y2="202" class="ln2"/>
+          <text x="256" y="190" class="dim">r = 857.5</text>
         </svg>
       </div>
       <figcaption>
